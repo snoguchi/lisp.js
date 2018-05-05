@@ -1,0 +1,19 @@
+{
+  "name": "lisp.js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lisp.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/snoguchi/lisp.js.git"
+  },
+  "author": "snoguchi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/snoguchi/lisp.js/issues"
+  },
+  "homepage": "https://github.com/snoguchi/lisp.js#readme"
+}
