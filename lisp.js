@@ -1,67 +1,87 @@
 'use strict';
 
+const t = true;
+const nil = [];
+
 function lisp(...lists) {
+  // TODO: separate func and var namespace
   const global = {};
   const lexical = [];
 
   const operators = {
-    '+': function(list) {
-      return list.reduce((a, b) => a + b);
+    '+': function(args) {
+      return args.reduce((a, b) => a + b);
     },
-    '-': function(list) {
-      return list.reduce((a, b) => a - b);
+    '-': function(args) {
+      return args.reduce((a, b) => a - b);
     },
-    '*': function(list) {
-      return list.reduce((a, b) => a * b);
+    '*': function(args) {
+      return args.reduce((a, b) => a * b);
     },
-    '/': function(list) {
-      return list.reduce((a, b) => a / b);
+    '/': function(args) {
+      return args.reduce((a, b) => a / b);
     },
-    '=': function(list) {
-      return list[0] == list[1];
+    '=': function(args) {
+      return args[0] == args[1] ? t : nil;
     },
-    'equal': function(list) {
-      return list[0] === list[1];
+    'equal': function(args) {
+      return args[0] === args[1] ? t : nil;
     },
-    '>': function(list) {
-      return list[0] > list[1];
+    '>': function(args) {
+      return args[0] > args[1] ? t : nil;
     },
-    '<': function(list) {
-      return list[0] < list[1];
+    '<': function(args) {
+      return args[0] < args[1] ? t : nil;
     },
-    '<=': function(list) {
-      return list[0] <= list[1];
+    '<=': function(args) {
+      return args[0] <= args[1] ? t : nil;
     },
-    '>=': function(list) {
-      return list[0] >= list[1];
+    '>=': function(args) {
+      return args[0] >= args[1] ? t: nil;
+    },
+    car: function(args) {
+      return args[0][0];
+    },
+    cdr: function(args) {
+      return args[0].slice(1);
+    },
+    cons: function(args) {
+      return [].concat(args[0]).concat(args[1]);
     }
   };
 
   const specialForms = {
-    defun: function(list) { // ['defun', 'square', ['x'], ['*', 'x', 'x']]
-      global[list[0]] = list;
+    quote: function(args) { // ['quote', []
+      return args[0];
     },
-    setq: function(list) { // ['setq', 'x', 1]
-      global[list[0]] = process(list[1]);
+    defun: function(args) { // ['defun', 'square', ['x'], ['*', 'x', 'x']]
+      global[args[0]] = args;
     },
-    let: function(list) {
-      lexical[0][list[0]] = process(list[1]);
+    setq: function(args) { // ['setq', 'x', 1]
+      global[args[0]] = process(args[1]);
     },
-    if: function(list) {
-      return process(list[0]) ? process(list[1]) : process(list[2]);
+    let: function(args) {
+      lexical[0][args[0]] = process(args[1]);
     },
-    cond: function(list) {
-      for (let i = 0; i < list.length; i++) {
-        if (process(list[i][0])) {
-          return process(list[i][1]);
+    if: function(args) {
+      return !isNil(process(args[0])) ? process(args[1]) : process(args[2]);
+    },
+    cond: function(args) {
+      for (let i = 0; i < args.length; i++) {
+        if (!isNil(process(args[i][0]))) {
+          return process(args[i][1]);
         }
       }
       return null;
     },
-    progn: function(list) {
-      return progn(list);
+    progn: function(args) {
+      return progn(args);
     }
   };
+
+  function isNil(value) {
+    return value instanceof Array && value.length === 0;
+  }
 
   function lookup(symbol) {
     let value;
@@ -79,9 +99,11 @@ function lisp(...lists) {
 
   function process(list) {
     let result;
-    if (!(list instanceof Array)) {
+    if (isNil(list)) {
+      return list;
+    } else if (!(list instanceof Array)) {
       result = lookup(list);
-    } else {
+    } else if (typeof list[0] === 'string') {
       const name = list[0], args = list.slice(1);
       let func = lookup(name); // func = ['square', ['x'], ['*', 'x', 'x']]
       if (func) {
@@ -96,8 +118,10 @@ function lisp(...lists) {
       } else if (specialForms[name]) {
         result = specialForms[name](args);
       } else {
-        throw `invalid list ${list}`;
+        throw `no such operator or function ${list}`;
       }
+    } else {
+      throw `invalid list expr ${list}`;
     }
     return result;
   }
@@ -110,3 +134,6 @@ function lisp(...lists) {
 }
 
 module.exports = lisp;
+lisp.lisp = lisp;
+lisp.nil = nil;
+lisp.t = t;

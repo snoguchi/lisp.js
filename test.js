@@ -1,14 +1,29 @@
 'use strict';
 
-const assert = require('assert');
 const lisp = require('./lisp');
-
-const eq = assert.deepStrictEqual;
+const nil = lisp.nil;
+const t = lisp.t;
+const eq = require('assert').deepStrictEqual;
 
 eq(lisp(123), 123);
+
 eq(lisp(123, 345), 345);
+
 eq(lisp(['+', 123, 345]), 468);
+
 eq(lisp(['+', ['*', 12, 80], ['/', 20, 5]]), 964);
+
+eq(lisp(['quote', [1, 2, 3, 4]]), [1, 2, 3, 4]);
+
+eq(lisp(['car', ['quote', [1, 2, 3, 4]]]), 1);
+
+eq(lisp(['cdr', ['quote', [1, 2, 3, 4]]]), [2, 3, 4]);
+
+eq(lisp(['cons', 1, ['cons', 2, ['cons', 3, 4]]]), [1, 2, 3, 4]);
+
+eq(lisp(['if', t, 11, 24]), 11);
+
+eq(lisp(['if', nil, 11, 24]), 24);
 
 eq(lisp(
   ['defun', 'square', ['x'], ['*', 'x', 'x']],
@@ -30,10 +45,10 @@ eq(lisp(
    ['cond',
     [['=', 'n', 0], 0],
     [['=', 'n', 1], 1],
-    [true, ['+',
-           ['fib', ['-', 'n', 1]],
-           ['fib', ['-', 'n', 2]]
-          ]
+    [t, ['+',
+         ['fib', ['-', 'n', 1]],
+         ['fib', ['-', 'n', 2]]
+        ]
     ]
    ]
   ],
